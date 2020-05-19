@@ -2,7 +2,7 @@
 #include <SDL2/SDL.h>
 #include <unistd.h>
 
-static uint8_t keymap[16] = {
+static const uint8_t keymap[16] = {
     SDLK_1, SDLK_2,
     SDLK_3, SDLK_4,
     SDLK_q, SDLK_w,
@@ -21,6 +21,12 @@ main(int argc, char **argv)
 	uint32_t pixels[2048];
 	srand(time(NULL));
 
+	if (argc != 2)
+	{
+		fprintf(stderr, "Usage: ./chip8 [ROM]\n");
+		return -1;
+	}
+
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
 		fprintf(stderr, "Cannot initialize SDL. Exiting. . .\n");
@@ -32,7 +38,8 @@ main(int argc, char **argv)
 							SDL_WINDOW_SHOWN);
 	if (win == NULL)
 	{
-		fprintf(stderr, "Cannot create SDL window. Exiting. . .\n%s\n", SDL_GetError());
+		fprintf(stderr, "Cannot create SDL window. Exiting. . .\n%s\n",
+				SDL_GetError());
 		return -1;
 	}
 
@@ -44,7 +51,7 @@ main(int argc, char **argv)
 
 	Chip8 chip8;
 	chip8_init(&chip8);
-	if (load(&chip8, argv[1]) == -1) return -1;
+	if (load(&chip8, argv[1]) < 0) return -1;
 
 	for (;;)
 	{
