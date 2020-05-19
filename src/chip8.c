@@ -220,22 +220,14 @@ decode(Chip8 *chip8)
 			int yl, xl;
 			for (yl = 0; yl < h; yl++)
 			{
-				printf("Decoding: %x\n", opcode);
 				pixel = memory[I + yl];
 				for (xl = 0; xl < 8; xl++)
 				{
-					printf("Decoding: %x\n", opcode);
-					printf("VX: %x\n", VX);
-					printf("VY: %x\n", VY);
-					printf("Pixel: %d\n", pixel);
-					printf("yline: %d\txline: %d\n", yl, xl);
-
 					if ((pixel & (0x80 >> xl)) != 0)
 					{
 						if (gfx[VX + xl + ((VY + yl) * 64)] == 1)
 							V[0xF] = 1;
 						gfx[VX + xl + ((VY + yl) * 64)] ^= 1;
-						printf("gfx: %d\n", gfx[VX + xl + ((VY + yl) * 64)]);
 					}
 				}
 			}
