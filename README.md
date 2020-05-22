@@ -4,7 +4,7 @@ Your typical CHIP-8 copy. This one uses SDL2 as a rendering API.
 
 ## Dependencies
 
-* `cmake`
+* `make`
 * `SDL2`
 
 ## Usage

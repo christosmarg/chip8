@@ -12,8 +12,8 @@ MOVE = mv
 MKDIR_P = mkdir -p
 
 CC = gcc
-CPPFLAGS += -Iinclude
-CFLAGS += -Wall
+CPPFLAGS += -Iinclude -pedantic
+CFLAGS += -Wall -std=c99
 LDFLAGS += -Llib
 LDLIBS += -lSDL2
 

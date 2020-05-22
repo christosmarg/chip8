@@ -1,3 +1,4 @@
+#define _DEFAULT_SOURCE
 #include "chip8.h"
 #include <SDL2/SDL.h>
 #include <unistd.h>
