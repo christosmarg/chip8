@@ -25,13 +25,13 @@ main(int argc, char **argv)
 	if (argc != 2)
 	{
 		fprintf(stderr, "Usage: ./chip8 [ROM]\n");
-		return -1;
+		return EXIT_FAILURE;
 	}
 
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
 	{
 		fprintf(stderr, "Cannot initialize SDL. Exiting. . .\n");
-		return -1;
+		return EXIT_FAILURE;
 	}
 
 	win = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED,
@@ -41,7 +41,7 @@ main(int argc, char **argv)
 	{
 		fprintf(stderr, "Cannot create SDL window. Exiting. . .\n%s\n",
 				SDL_GetError());
-		return -1;
+		return EXIT_FAILURE;
 	}
 
 	SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, 0);
@@ -52,7 +52,7 @@ main(int argc, char **argv)
 
 	Chip8 chip8;
 	chip8_init(&chip8);
-	if (load(&chip8, argv[1]) < 0) return -1;
+	if (!load(&chip8, argv[1])) return EXIT_FAILURE;
 
 	for (;;)
 	{
@@ -62,10 +62,10 @@ main(int argc, char **argv)
 		int i;
 		while (SDL_PollEvent(&e))
 		{
-			if (e.type == SDL_QUIT) return -1;
+			if (e.type == SDL_QUIT) return EXIT_FAILURE; 
 			if (e.type == SDL_KEYDOWN)
 			{
-				if (e.key.keysym.sym == SDLK_ESCAPE) return -1;
+				if (e.key.keysym.sym == SDLK_ESCAPE) return EXIT_FAILURE;
 				for (i = 0; i < 16; i++)
 					if (e.key.keysym.sym == keymap[i])
 						chip8.keys[i] = 1;
@@ -90,8 +90,12 @@ main(int argc, char **argv)
 			SDL_RenderCopy(renderer, texture, NULL, NULL);
 			SDL_RenderPresent(renderer);
 		}
-		usleep(1500);
+		usleep(2000);
 	}
 
-	return 0;
+	SDL_DestroyTexture(texture);
+	SDL_DestroyRenderer(renderer);
+	SDL_DestroyWindow(win);
+	SDL_Quit();
+	return EXIT_SUCCESS;
 }

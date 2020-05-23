@@ -60,7 +60,7 @@ load(Chip8 *chip8, const char *fpath)
 	if (rom == NULL)
 	{
 		fprintf(stderr, "Error loading ROM (%s). Exiting. . .\n", fpath);
-		return -1;
+		return FALSE;
 	}
 	fseek(rom, 0, SEEK_END);
 	long romsize = ftell(rom);
@@ -70,14 +70,14 @@ load(Chip8 *chip8, const char *fpath)
 	if (buf == NULL)
 	{
 		fprintf(stderr, "Cannot allocate memory. Exiting. . .\n");
-		return -1;
+		return FALSE;
 	}
 
 	size_t res = fread(buf, sizeof(char), (size_t)romsize, rom);
 	if (res != romsize)
 	{
 		fprintf(stderr, "Error reading ROM. Exiting. . .\n");
-		return -1;
+		return FALSE;
 	}
 
 	int i;
@@ -87,19 +87,19 @@ load(Chip8 *chip8, const char *fpath)
 	else
 	{
 		fprintf(stderr, "ROM can't fit into memory. Exiting. . .\n");
-		return -1;
+		return FALSE;
 	}
 
 	fclose(rom);
 	free(buf);
-	return 1;
+	return TRUE;
 }
 
 void
 emulate(Chip8 *chip8)
 {
 	fetch(chip8);
-	if (decode(chip8) > 0)
+	if (decode(chip8))
 	{
 		execute(chip8);
 		update_timers(chip8);
@@ -133,7 +133,7 @@ decode(Chip8 *chip8)
 					break;
 				default:
 					fprintf(stderr, "Unknown opcode: %x\n", opcode);
-					return -1;
+					return FALSE;
 			}
 			break;
 		case 0x1000: // 1NNN - Jump to address NNN
@@ -194,7 +194,7 @@ decode(Chip8 *chip8)
 					break;
 				default:
 					fprintf(stderr, "Unknown opcode: %x\n", opcode);
-					return -1;
+					return FALSE;
 			}
 			break;
 		case 0x9000: // 9XY0 - Skip next instruction if VX != VY
@@ -246,7 +246,7 @@ decode(Chip8 *chip8)
 					break;
 				default:
 					fprintf(stderr, "Unknown opcode: %x\n", opcode);
-					return -1;
+					return FALSE;
 			}
 			break;
 		case 0xF000: // FX__
@@ -267,7 +267,7 @@ decode(Chip8 *chip8)
 						}
 					}
 
-					if (!keypressed) return -1;
+					if (!keypressed) return FALSE;
 				}
 					break;
 				case 0x0015: // FX15 - Set the delaytimer to VX
@@ -300,15 +300,15 @@ decode(Chip8 *chip8)
 					break;
 				default:
 					fprintf(stderr, "Unknown opcode: %x\n", opcode);
-					return -1;
+					return FALSE;
 			}
 			break;
 		default:
 			fprintf(stderr, "Unimplemented opcode\n");
-			return -1;
+			return FALSE;
 	}
 
-	return 1;
+	return TRUE;
 }
 
 void
