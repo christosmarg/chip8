@@ -7,6 +7,9 @@
 #include <string.h>
 #include <time.h>
 
+#define TRUE 1
+#define FALSE 0
+
 typedef struct {
 	uint8_t memory[4096];
 	uint16_t stack[16];
