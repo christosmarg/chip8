@@ -11,20 +11,20 @@
 #define FALSE 0
 
 typedef struct {
-	uint8_t memory[4096];
-	uint16_t stack[16];
-	uint16_t sp;
+    uint8_t memory[4096];
+    uint16_t stack[16];
+    uint16_t sp;
 
-	uint8_t V[16];
-	uint16_t opcode;
-	uint16_t I;
-	uint16_t pc;
+    uint8_t V[16];
+    uint16_t opcode;
+    uint16_t I;
+    uint16_t pc;
 
-	uint8_t delaytimer;
-	uint8_t soundtimer;
-	uint8_t gfx[64 * 32];
-	uint8_t keys[16];
-	int drawflag;
+    uint8_t delaytimer;
+    uint8_t soundtimer;
+    uint8_t gfx[64 * 32];
+    uint8_t keys[16];
+    int drawflag;
 } Chip8;
 
 extern Chip8 chip8;

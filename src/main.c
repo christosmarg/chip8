@@ -17,85 +17,85 @@ static const uint8_t keymap[16] = {
 int
 main(int argc, char **argv)
 {
-	SDL_Window *win = NULL;
-	int w = 1024, h = 512;
-	uint32_t pixels[2048];
-	srand(time(NULL));
+    SDL_Window *win = NULL;
+    int w = 1024, h = 512;
+    uint32_t pixels[2048];
+    srand(time(NULL));
 
-	if (argc != 2)
-	{
-		fprintf(stderr, "Usage: ./chip8 [ROM]\n");
-		return EXIT_FAILURE;
-	}
+    if (argc != 2)
+    {
+        fprintf(stderr, "Usage: ./chip8 [ROM]\n");
+        return EXIT_FAILURE;
+    }
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
-	{
-		fprintf(stderr, "Cannot initialize SDL. Exiting. . .\n");
-		return EXIT_FAILURE;
-	}
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
+    {
+        fprintf(stderr, "Cannot initialize SDL. Exiting. . .\n");
+        return EXIT_FAILURE;
+    }
 
-	win = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED,
-							SDL_WINDOWPOS_UNDEFINED, w, h,
-							SDL_WINDOW_SHOWN);
-	if (win == NULL)
-	{
-		fprintf(stderr, "Cannot create SDL window. Exiting. . .\n%s\n",
-				SDL_GetError());
-		return EXIT_FAILURE;
-	}
+    win = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED,
+                            SDL_WINDOWPOS_UNDEFINED, w, h,
+                            SDL_WINDOW_SHOWN);
+    if (win == NULL)
+    {
+        fprintf(stderr, "Cannot create SDL window. Exiting. . .\n%s\n",
+                SDL_GetError());
+        return EXIT_FAILURE;
+    }
 
-	SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, 0);
-	SDL_RenderSetLogicalSize(renderer, w, h);
-	SDL_Texture *texture = SDL_CreateTexture(
-			renderer, SDL_PIXELFORMAT_ARGB8888,
-			SDL_TEXTUREACCESS_STREAMING, 64, 32);
+    SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, 0);
+    SDL_RenderSetLogicalSize(renderer, w, h);
+    SDL_Texture *texture = SDL_CreateTexture(
+            renderer, SDL_PIXELFORMAT_ARGB8888,
+            SDL_TEXTUREACCESS_STREAMING, 64, 32);
 
-	Chip8 chip8;
-	chip8_init(&chip8);
-	if (!load(&chip8, argv[1])) return EXIT_FAILURE;
+    Chip8 chip8;
+    chip8_init(&chip8);
+    if (!load(&chip8, argv[1])) return EXIT_FAILURE;
 
-	for (;;)
-	{
-		SDL_Event e;
-		emulate(&chip8);
-	
-		int i;
-		while (SDL_PollEvent(&e))
-		{
-			if (e.type == SDL_QUIT) return EXIT_FAILURE; 
-			if (e.type == SDL_KEYDOWN)
-			{
-				if (e.key.keysym.sym == SDLK_ESCAPE) return EXIT_FAILURE;
-				for (i = 0; i < 16; i++)
-					if (e.key.keysym.sym == keymap[i])
-						chip8.keys[i] = 1;
-			}
+    for (;;)
+    {
+        SDL_Event e;
+        emulate(&chip8);
+    
+        int i;
+        while (SDL_PollEvent(&e))
+        {
+            if (e.type == SDL_QUIT) return EXIT_FAILURE; 
+            if (e.type == SDL_KEYDOWN)
+            {
+                if (e.key.keysym.sym == SDLK_ESCAPE) return EXIT_FAILURE;
+                for (i = 0; i < 16; i++)
+                    if (e.key.keysym.sym == keymap[i])
+                        chip8.keys[i] = 1;
+            }
 
-			if (e.type == SDL_KEYUP)
-				for (i = 0; i < 16; i++)
-					if (e.key.keysym.sym == keymap[i])
-						chip8.keys[i] = 0;
-		}
+            if (e.type == SDL_KEYUP)
+                for (i = 0; i < 16; i++)
+                    if (e.key.keysym.sym == keymap[i])
+                        chip8.keys[i] = 0;
+        }
 
-		if (chip8.drawflag)
-		{
-			chip8.drawflag = 0;
-			for (i = 0; i < 2048; i++)
-			{
-				uint8_t pixel = chip8.gfx[i];
-				pixels[i] = (0x00FFFFFF * pixel) | 0xFF000000;
-			}
-			SDL_UpdateTexture(texture, NULL, pixels, 64 * sizeof(Uint32));
-			SDL_RenderClear(renderer);
-			SDL_RenderCopy(renderer, texture, NULL, NULL);
-			SDL_RenderPresent(renderer);
-		}
-		usleep(2000);
-	}
+        if (chip8.drawflag)
+        {
+            chip8.drawflag = 0;
+            for (i = 0; i < 2048; i++)
+            {
+                uint8_t pixel = chip8.gfx[i];
+                pixels[i] = (0x00FFFFFF * pixel) | 0xFF000000;
+            }
+            SDL_UpdateTexture(texture, NULL, pixels, 64 * sizeof(Uint32));
+            SDL_RenderClear(renderer);
+            SDL_RenderCopy(renderer, texture, NULL, NULL);
+            SDL_RenderPresent(renderer);
+        }
+        usleep(1500);
+    }
 
-	SDL_DestroyTexture(texture);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(win);
-	SDL_Quit();
-	return EXIT_SUCCESS;
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(win);
+    SDL_Quit();
+    return EXIT_SUCCESS;
 }
