@@ -10,6 +10,8 @@
 #define TRUE 1
 #define FALSE 0
 
+#define ERROR(format, ...) (fprintf(stderr, format"\n", __VA_ARGS__))
+
 typedef struct {
     uint8_t memory[4096];
     uint16_t stack[16];

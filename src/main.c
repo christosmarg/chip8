@@ -24,13 +24,13 @@ main(int argc, char **argv)
 
     if (argc != 2)
     {
-        fprintf(stderr, "Usage: ./chip8 [ROM]\n");
+        ERROR("%s", "Usage: ./chip8 [ROM]");
         return EXIT_FAILURE;
     }
 
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     {
-        fprintf(stderr, "Cannot initialize SDL. Exiting. . .\n");
+        ERROR("%s", "Cannot initialize SDL. Exiting. . .");
         return EXIT_FAILURE;
     }
 
@@ -39,8 +39,7 @@ main(int argc, char **argv)
                             SDL_WINDOW_SHOWN);
     if (win == NULL)
     {
-        fprintf(stderr, "Cannot create SDL window. Exiting. . .\n%s\n",
-                SDL_GetError());
+        ERROR("Cannot create SDL window. Exiting. . .\n%s", SDL_GetError());
         return EXIT_FAILURE;
     }
 
@@ -62,10 +61,10 @@ main(int argc, char **argv)
         int i;
         while (SDL_PollEvent(&e))
         {
-            if (e.type == SDL_QUIT) return EXIT_FAILURE; 
+            if (e.type == SDL_QUIT) return EXIT_SUCCESS; 
             if (e.type == SDL_KEYDOWN)
             {
-                if (e.key.keysym.sym == SDLK_ESCAPE) return EXIT_FAILURE;
+                if (e.key.keysym.sym == SDLK_ESCAPE) return EXIT_SUCCESS;
                 for (i = 0; i < 16; i++)
                     if (e.key.keysym.sym == keymap[i])
                         chip8.keys[i] = 1;

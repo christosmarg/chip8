@@ -13,7 +13,7 @@ MKDIR_P = mkdir -p
 
 CC = gcc
 CPPFLAGS += -Iinclude -pedantic
-CFLAGS += -Wall -std=c99
+CFLAGS += -Wall -std=c99 -O3
 LDFLAGS += -Llib
 LDLIBS += -lSDL2
 
