@@ -59,7 +59,7 @@ load(Chip8 *chip8, const char *fpath)
     FILE *rom = fopen(fpath, "rb");
     if (rom == NULL)
     {
-        fprintf(stderr, "Error loading ROM (%s). Exiting. . .\n", fpath);
+        ERROR("Error loading ROM (%s). Exiting. . .", fpath);
         return FALSE;
     }
     fseek(rom, 0, SEEK_END);
@@ -69,14 +69,14 @@ load(Chip8 *chip8, const char *fpath)
     char *buf = (char *)malloc(romsize * sizeof(char));
     if (buf == NULL)
     {
-        fprintf(stderr, "Cannot allocate memory. Exiting. . .\n");
+        ERROR("%s", "Cannot allocate memory. Exiting. . .");
         return FALSE;
     }
 
     size_t res = fread(buf, sizeof(char), (size_t)romsize, rom);
     if (res != romsize)
     {
-        fprintf(stderr, "Error reading ROM. Exiting. . .\n");
+        ERROR("%s", "Error reading ROM. Exiting. . .");
         return FALSE;
     }
 
@@ -86,7 +86,7 @@ load(Chip8 *chip8, const char *fpath)
             memory[i + 512] = (uint8_t)buf[i];
     else
     {
-        fprintf(stderr, "ROM can't fit into memory. Exiting. . .\n");
+        ERROR("%s", "ROM can't fit into memory. Exiting. . .");
         return FALSE;
     }
 
@@ -132,7 +132,7 @@ decode(Chip8 *chip8)
                     pc = stack[--sp];
                     break;
                 default:
-                    fprintf(stderr, "Unknown opcode: %x\n", opcode);
+                    ERROR("Unknown opcode: %x", opcode);
                     return FALSE;
             }
             break;
@@ -193,7 +193,7 @@ decode(Chip8 *chip8)
                     V[(opcode & 0x0F00) >> 8] <<= 1;
                     break;
                 default:
-                    fprintf(stderr, "Unknown opcode: %x\n", opcode);
+                    ERROR("Unknown opcode: %x", opcode);
                     return FALSE;
             }
             break;
@@ -245,7 +245,7 @@ decode(Chip8 *chip8)
                     if (keys[V[(opcode & 0x0F00) >> 8]] == 0) pc += 2;
                     break;
                 default:
-                    fprintf(stderr, "Unknown opcode: %x\n", opcode);
+                    ERROR("Unknown opcode: %x", opcode);
                     return FALSE;
             }
             break;
@@ -299,12 +299,12 @@ decode(Chip8 *chip8)
                     I += ((opcode & 0x0F00) >> 8) + 1;
                     break;
                 default:
-                    fprintf(stderr, "Unknown opcode: %x\n", opcode);
+                    ERROR("Unknown opcode: %x", opcode);
                     return FALSE;
             }
             break;
         default:
-            fprintf(stderr, "Unimplemented opcode\n");
+            ERROR("%s", "Unimplemented opcode");
             return FALSE;
     }
 
