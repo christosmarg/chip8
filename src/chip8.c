@@ -16,8 +16,7 @@
 void
 chip8_init(Chip8 *chip8)
 {
-    uint8_t fontset[80] =
-    {
+    uint8_t fontset[80] = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
         0x20, 0x60, 0x20, 0x20, 0x70, // 1
         0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -104,8 +103,7 @@ emulate(Chip8 *chip8)
         execute(chip8);
         update_timers(chip8);
     }
-
-    printf("opcode: %x\tmemory: %x\tI: %x\tsp: %x\tpc: %d\n",
+    LOG("opcode: %x\tmemory: %x\tI: %x\tsp: %x\tpc: %d",
             opcode, memory[pc] << 8 | memory[pc + 1], I, sp, pc);
 }
 
@@ -126,7 +124,7 @@ decode(Chip8 *chip8)
             {
                 case 0xE0: // 00E0 - Clear screen
                     memset(gfx, 0, 2048 * sizeof(uint8_t));
-                    drawflag = 1;
+                    drawflag = TRUE;
                     break;
                 case 0xEE: // 00EE - Return from subroutine
                     pc = stack[--sp];
@@ -232,17 +230,17 @@ decode(Chip8 *chip8)
                 }
             }
 
-            drawflag = 1;
+            drawflag = TRUE;
         }
             break;
         case 0xE000: // EX__
             switch (opcode & 0x00FF)
             {
                 case 0x009E: // EX9E - Skip next instruction if key in VX is pressed
-                    if (keys[V[(opcode & 0x0F00) >> 8]] != 0) pc += 2;
+                    if (keys[V[(opcode & 0x0F00) >> 8]]) pc += 2;
                     break;
                 case 0x00A1: // EXA1 - Skip next instruction if key in VX isn't pressed
-                    if (keys[V[(opcode & 0x0F00) >> 8]] == 0) pc += 2;
+                    if (!keys[V[(opcode & 0x0F00) >> 8]]) pc += 2;
                     break;
                 default:
                     ERROR("Unknown opcode: %x", opcode);
@@ -257,16 +255,15 @@ decode(Chip8 *chip8)
                     break;
                 case 0x000A: // FX0A - Wait for key press and then store it in VX
                 {
-                    int keypressed = 0;
+                    int keypressed = FALSE;
                     for (i = 0; i < 16; i++)
                     {
-                        if (keys[i] != 0)
+                        if (keys[i])
                         {
                             V[(opcode & 0x0F00) >> 8] = i;
-                            keypressed = 1;
+                            keypressed = TRUE;
                         }
                     }
-
                     if (!keypressed) return FALSE;
                 }
                     break;
@@ -307,7 +304,6 @@ decode(Chip8 *chip8)
             ERROR("%s", "Unimplemented opcode");
             return FALSE;
     }
-
     return TRUE;
 }
 
