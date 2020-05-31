@@ -1,15 +1,16 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
-#define TRUE 1
+#define TRUE  1
 #define FALSE 0
 
+#define LOG(format, ...)   (printf(format"\n", __VA_ARGS__))
 #define ERROR(format, ...) (fprintf(stderr, format"\n", __VA_ARGS__))
 
 typedef struct {

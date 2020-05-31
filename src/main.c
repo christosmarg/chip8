@@ -14,12 +14,55 @@ static const uint8_t keymap[16] = {
     SDLK_c, SDLK_v,
 };
 
+static int handle_events(Chip8 *chip8);
+static void render(SDL_Renderer *r, SDL_Texture *t, Chip8 *chip8);
+
+int
+handle_events(Chip8 *chip8)
+{
+    int i;
+    SDL_Event e;
+    while (SDL_PollEvent(&e))
+    {
+        if (e.type == SDL_QUIT) return FALSE; 
+        if (e.type == SDL_KEYDOWN)
+        {
+            if (e.key.keysym.sym == SDLK_ESCAPE) return FALSE;
+            for (i = 0; i < 16; i++)
+                if (e.key.keysym.sym == keymap[i])
+                    chip8->keys[i] = TRUE;
+        }
+
+        if (e.type == SDL_KEYUP)
+            for (i = 0; i < 16; i++)
+                if (e.key.keysym.sym == keymap[i])
+                    chip8->keys[i] = FALSE;
+    }
+    return TRUE;
+}
+
+void
+render(SDL_Renderer *r, SDL_Texture *t, Chip8 *chip8)
+{
+    int i;
+    uint32_t pixels[2048];
+    chip8->drawflag = FALSE;
+    for (i = 0; i < 2048; i++)
+    {
+        uint8_t pixel = chip8->gfx[i];
+        pixels[i] = (0x00FFFFFF * pixel) | 0xFF000000;
+    }
+    SDL_UpdateTexture(t, NULL, pixels, 64 * sizeof(Uint32));
+    SDL_RenderClear(r);
+    SDL_RenderCopy(r, t, NULL, NULL);
+    SDL_RenderPresent(r);
+}
+
 int
 main(int argc, char **argv)
 {
     SDL_Window *win = NULL;
     int w = 1024, h = 512;
-    uint32_t pixels[2048];
     srand(time(NULL));
 
     if (argc != 2)
@@ -27,7 +70,6 @@ main(int argc, char **argv)
         ERROR("%s", "Usage: ./chip8 [ROM]");
         return EXIT_FAILURE;
     }
-
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     {
         ERROR("%s", "Cannot initialize SDL. Exiting. . .");
@@ -52,43 +94,11 @@ main(int argc, char **argv)
     Chip8 chip8;
     chip8_init(&chip8);
     if (!load(&chip8, argv[1])) return EXIT_FAILURE;
-
     for (;;)
     {
-        SDL_Event e;
         emulate(&chip8);
-    
-        int i;
-        while (SDL_PollEvent(&e))
-        {
-            if (e.type == SDL_QUIT) return EXIT_SUCCESS; 
-            if (e.type == SDL_KEYDOWN)
-            {
-                if (e.key.keysym.sym == SDLK_ESCAPE) return EXIT_SUCCESS;
-                for (i = 0; i < 16; i++)
-                    if (e.key.keysym.sym == keymap[i])
-                        chip8.keys[i] = 1;
-            }
-
-            if (e.type == SDL_KEYUP)
-                for (i = 0; i < 16; i++)
-                    if (e.key.keysym.sym == keymap[i])
-                        chip8.keys[i] = 0;
-        }
-
-        if (chip8.drawflag)
-        {
-            chip8.drawflag = 0;
-            for (i = 0; i < 2048; i++)
-            {
-                uint8_t pixel = chip8.gfx[i];
-                pixels[i] = (0x00FFFFFF * pixel) | 0xFF000000;
-            }
-            SDL_UpdateTexture(texture, NULL, pixels, 64 * sizeof(Uint32));
-            SDL_RenderClear(renderer);
-            SDL_RenderCopy(renderer, texture, NULL, NULL);
-            SDL_RenderPresent(renderer);
-        }
+        if (!handle_events(&chip8)) return EXIT_SUCCESS;
+        if (chip8.drawflag) render(renderer, texture, &chip8);
         usleep(1500);
     }
 
