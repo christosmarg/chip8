@@ -53,7 +53,7 @@ chip8_init(Chip8 *chip8)
 }
 
 int
-load(Chip8 *chip8, const char *fpath)
+rom_load(Chip8 *chip8, const char *fpath)
 {
     FILE *rom = fopen(fpath, "rb");
     if (rom == NULL)
@@ -101,7 +101,7 @@ emulate(Chip8 *chip8)
     if (decode(chip8))
     {
         execute(chip8);
-        update_timers(chip8);
+        timers_update(chip8);
     }
     LOG("opcode: %x\tmemory: %x\tI: %x\tsp: %x\tpc: %d",
             opcode, memory[pc] << 8 | memory[pc + 1], I, sp, pc);
@@ -314,7 +314,7 @@ execute(Chip8 *chip8)
 }
 
 void
-update_timers(Chip8 *chip8)
+timers_update(Chip8 *chip8)
 {
     if (delaytimer > 0) --delaytimer;
     if (soundtimer > 0) --soundtimer;
