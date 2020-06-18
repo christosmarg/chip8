@@ -1,7 +1,7 @@
 #define _DEFAULT_SOURCE
-#include "chip8.h"
 #include <SDL2/SDL.h>
 #include <unistd.h>
+#include "chip8.h"
 
 static const uint8_t keymap[16] = {
     SDLK_1, SDLK_2,
@@ -14,7 +14,7 @@ static const uint8_t keymap[16] = {
     SDLK_c, SDLK_v,
 };
 
-static int handle_events(Chip8 *chip8);
+static int  handle_events(Chip8 *chip8);
 static void render(SDL_Renderer *r, SDL_Texture *t, Chip8 *chip8);
 
 int
@@ -32,7 +32,6 @@ handle_events(Chip8 *chip8)
                 if (e.key.keysym.sym == keymap[i])
                     chip8->keys[i] = TRUE;
         }
-
         if (e.type == SDL_KEYUP)
             for (i = 0; i < 16; i++)
                 if (e.key.keysym.sym == keymap[i])
@@ -93,7 +92,7 @@ main(int argc, char **argv)
 
     Chip8 chip8;
     chip8_init(&chip8);
-    if (!load(&chip8, argv[1])) return EXIT_FAILURE;
+    if (!rom_load(&chip8, argv[1])) return EXIT_FAILURE;
     for (;;)
     {
         emulate(&chip8);

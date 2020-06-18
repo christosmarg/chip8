@@ -14,30 +14,28 @@
 #define ERROR(format, ...) (fprintf(stderr, format"\n", __VA_ARGS__))
 
 typedef struct {
-    uint8_t memory[4096];
-    uint16_t stack[16];
-    uint16_t sp;
-
-    uint8_t V[16];
-    uint16_t opcode;
-    uint16_t I;
-    uint16_t pc;
-
-    uint8_t delaytimer;
-    uint8_t soundtimer;
-    uint8_t gfx[64 * 32];
-    uint8_t keys[16];
-    int drawflag;
+    uint8_t   memory[4096];
+    uint8_t   V[16];
+    uint8_t   gfx[64 * 32];
+    uint8_t   keys[16];
+    uint8_t   delaytimer;
+    uint8_t   soundtimer;
+    uint8_t   drawflag;
+    uint16_t  stack[16];
+    uint16_t  sp;
+    uint16_t  opcode;
+    uint16_t  I;
+    uint16_t  pc;
 } Chip8;
 
 extern Chip8 chip8;
 
-void chip8_init(Chip8 *chip8);
-int load(Chip8 *chip8, const char *fpath);
-void emulate(Chip8 *chip8);
-void fetch(Chip8 *chip8);
-int decode(Chip8 *chip8);
-void execute(Chip8 *chip8);
-void update_timers(Chip8 *chip8);
+void  chip8_init(Chip8 *chip8);
+int   rom_load(Chip8 *chip8, const char *fpath);
+void  emulate(Chip8 *chip8);
+void  fetch(Chip8 *chip8);
+int   decode(Chip8 *chip8);
+void  execute(Chip8 *chip8);
+void  timers_update(Chip8 *chip8);
 
 #endif /* CHIP8_H */
