@@ -35,21 +35,20 @@ chip8_init(Chip8 *chip8)
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
 
-    pc = 0x200;
-    opcode = 0;
-    I = 0;
-    sp = 0;
+    pc         = 0x200;
+    opcode     = 0;
+    I          = 0;
+    sp         = 0;
     delaytimer = 0;
     soundtimer = 0;
 
-    memset(V,       0, 16   * sizeof(uint8_t));
-    memset(keys,    0, 16   * sizeof(uint8_t));
-    memset(stack,   0, 16   * sizeof(uint16_t));
-    memset(gfx,     0, 2048 * sizeof(uint8_t));
-    memset(memory,  0, 4096 * sizeof(uint8_t));
+    memset(V,      0, 16   * sizeof(uint8_t));
+    memset(keys,   0, 16   * sizeof(uint8_t));
+    memset(stack,  0, 16   * sizeof(uint16_t));
+    memset(gfx,    0, 2048 * sizeof(uint8_t));
+    memset(memory, 0, 4096 * sizeof(uint8_t));
     int i;
-    for (i = 0; i < 80; i++)
-        memory[i] = fontset[i];
+    for (i = 0; i < 80; memory[i] = fontset[i], i++);
 }
 
 int
@@ -58,7 +57,7 @@ rom_load(Chip8 *chip8, const char *fpath)
     FILE *rom = fopen(fpath, "rb");
     if (rom == NULL)
     {
-        ERROR("Error loading ROM (%s). Exiting. . .", fpath);
+        fprintf(stderr, "Error loading ROM (%s). Exiting. . .\n", fpath);
         return FALSE;
     }
     fseek(rom, 0, SEEK_END);
@@ -68,14 +67,14 @@ rom_load(Chip8 *chip8, const char *fpath)
     char *buf = (char *)malloc(romsize * sizeof(char));
     if (buf == NULL)
     {
-        ERROR("%s", "Cannot allocate memory. Exiting. . .");
+        fprintf(stderr, "Cannot allocate memory. Exiting. . .\n");
         return FALSE;
     }
 
     size_t res = fread(buf, sizeof(char), (size_t)romsize, rom);
     if (res != romsize)
     {
-        ERROR("%s", "Error reading ROM. Exiting. . .");
+        fprintf(stderr, "Error reading ROM. Exiting. . .\n");
         return FALSE;
     }
 
@@ -85,7 +84,7 @@ rom_load(Chip8 *chip8, const char *fpath)
             memory[i + 512] = (uint8_t)buf[i];
     else
     {
-        ERROR("%s", "ROM can't fit into memory. Exiting. . .");
+        fprintf(stderr, "ROM can't fit into memory. Exiting. . .\n");
         return FALSE;
     }
 
@@ -103,7 +102,7 @@ emulate(Chip8 *chip8)
         execute(chip8);
         timers_update(chip8);
     }
-    LOG("opcode: %x\tmemory: %x\tI: %x\tsp: %x\tpc: %d",
+    printf("opcode: %x\tmemory: %x\tI: %x\tsp: %x\tpc: %d\n",
             opcode, memory[pc] << 8 | memory[pc + 1], I, sp, pc);
 }
 
@@ -130,7 +129,7 @@ decode(Chip8 *chip8)
                     pc = stack[--sp];
                     break;
                 default:
-                    ERROR("Unknown opcode: %x", opcode);
+                    fprintf(stderr, "Unknown opcode: %x\n", opcode);
                     return FALSE;
             }
             break;
@@ -191,7 +190,7 @@ decode(Chip8 *chip8)
                     V[(opcode & 0x0F00) >> 8] <<= 1;
                     break;
                 default:
-                    ERROR("Unknown opcode: %x", opcode);
+                    fprintf(stderr, "Unknown opcode: %x\n", opcode);
                     return FALSE;
             }
             break;
@@ -243,7 +242,7 @@ decode(Chip8 *chip8)
                     if (!keys[V[(opcode & 0x0F00) >> 8]]) pc += 2;
                     break;
                 default:
-                    ERROR("Unknown opcode: %x", opcode);
+                    fprintf(stderr, "Unknown opcode: %x\n", opcode);
                     return FALSE;
             }
             break;
@@ -296,12 +295,12 @@ decode(Chip8 *chip8)
                     I += ((opcode & 0x0F00) >> 8) + 1;
                     break;
                 default:
-                    ERROR("Unknown opcode: %x", opcode);
+                    fprintf(stderr, "Unknown opcode: %x\n", opcode);
                     return FALSE;
             }
             break;
         default:
-            ERROR("%s", "Unimplemented opcode");
+            fprintf(stderr, "Unimplemented opcode\n");
             return FALSE;
     }
     return TRUE;

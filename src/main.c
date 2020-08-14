@@ -66,12 +66,12 @@ main(int argc, char **argv)
 
     if (argc != 2)
     {
-        ERROR("%s", "Usage: ./chip8 [ROM]");
+        fprintf(stderr, "Usage: ./chip8 [ROM]\n");
         return EXIT_FAILURE;
     }
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
     {
-        ERROR("%s", "Cannot initialize SDL. Exiting. . .");
+        fprintf(stderr, "Cannot initialize SDL. Exiting. . .\n");
         return EXIT_FAILURE;
     }
 
@@ -80,7 +80,7 @@ main(int argc, char **argv)
                             SDL_WINDOW_SHOWN);
     if (win == NULL)
     {
-        ERROR("Cannot create SDL window. Exiting. . .\n%s", SDL_GetError());
+        fprintf(stderr, "Cannot create SDL window. Exiting. . .\n%s\n", SDL_GetError());
         return EXIT_FAILURE;
     }
 
