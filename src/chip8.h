@@ -10,9 +10,6 @@
 #define TRUE  1
 #define FALSE 0
 
-#define LOG(format, ...)   (printf(format"\n", __VA_ARGS__))
-#define ERROR(format, ...) (fprintf(stderr, format"\n", __VA_ARGS__))
-
 typedef struct {
     uint8_t   memory[4096];
     uint8_t   V[16];
@@ -30,12 +27,12 @@ typedef struct {
 
 extern Chip8 chip8;
 
-void  chip8_init(Chip8 *chip8);
-int   rom_load(Chip8 *chip8, const char *fpath);
-void  emulate(Chip8 *chip8);
-void  fetch(Chip8 *chip8);
-int   decode(Chip8 *chip8);
-void  execute(Chip8 *chip8);
-void  timers_update(Chip8 *chip8);
+extern void  chip8_init(Chip8 *chip8);
+extern int   rom_load(Chip8 *chip8, const char *fpath);
+extern void  emulate(Chip8 *chip8);
+extern void  fetch(Chip8 *chip8);
+extern int   decode(Chip8 *chip8);
+extern void  execute(Chip8 *chip8);
+extern void  timers_update(Chip8 *chip8);
 
 #endif /* CHIP8_H */
