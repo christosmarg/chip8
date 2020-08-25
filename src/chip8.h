@@ -28,11 +28,11 @@ typedef struct {
 extern Chip8 chip8;
 
 extern void  chip8_init(Chip8 *chip8);
-extern int   rom_load(Chip8 *chip8, const char *fpath);
-extern void  emulate(Chip8 *chip8);
-extern void  fetch(Chip8 *chip8);
-extern int   decode(Chip8 *chip8);
-extern void  execute(Chip8 *chip8);
-extern void  timers_update(Chip8 *chip8);
+extern int   chip8_rom_load(Chip8 *chip8, const char *fpath);
+extern void  chip8_emulate(Chip8 *chip8);
+extern void  chip8_fetch(Chip8 *chip8);
+extern int   chip8_decode(Chip8 *chip8);
+extern void  chip8_execute(Chip8 *chip8);
+extern void  chip8_timers_update(Chip8 *chip8);
 
 #endif /* CHIP8_H */
