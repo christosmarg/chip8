@@ -14,11 +14,8 @@ static const uint8_t keymap[16] = {
     SDLK_c, SDLK_v,
 };
 
-static int  handle_events(Chip8 *chip8);
-static void render(SDL_Renderer *r, SDL_Texture *t, Chip8 *chip8);
-
-int
-handle_events(Chip8 *chip8)
+static int
+events_handle(Chip8 *chip8)
 {
     int i;
     SDL_Event e;
@@ -40,7 +37,7 @@ handle_events(Chip8 *chip8)
     return TRUE;
 }
 
-void
+static void
 render(SDL_Renderer *r, SDL_Texture *t, Chip8 *chip8)
 {
     int i;
@@ -92,11 +89,11 @@ main(int argc, char **argv)
 
     Chip8 chip8;
     chip8_init(&chip8);
-    if (!rom_load(&chip8, argv[1])) return EXIT_FAILURE;
+    if (!chip8_rom_load(&chip8, argv[1])) return EXIT_FAILURE;
     for (;;)
     {
-        emulate(&chip8);
-        if (!handle_events(&chip8)) return EXIT_SUCCESS;
+        chip8_emulate(&chip8);
+        if (!events_handle(&chip8)) return EXIT_SUCCESS;
         if (chip8.drawflag) render(renderer, texture, &chip8);
         usleep(1500);
     }
