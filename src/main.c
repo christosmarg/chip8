@@ -4,18 +4,14 @@
 #include "chip8.h"
 
 static const uint8_t keymap[16] = {
-    SDLK_1, SDLK_2,
-    SDLK_3, SDLK_4,
-    SDLK_q, SDLK_w,
-    SDLK_e, SDLK_r,
-    SDLK_a, SDLK_s,
-    SDLK_d, SDLK_f,
-    SDLK_z, SDLK_x,
-    SDLK_c, SDLK_v,
+    SDLK_1, SDLK_2, SDLK_3, SDLK_4,
+    SDLK_q, SDLK_w, SDLK_e, SDLK_r,
+    SDLK_a, SDLK_s, SDLK_d, SDLK_f,
+    SDLK_z, SDLK_x, SDLK_c, SDLK_v
 };
 
 static int
-events_handle(Chip8 *chip8)
+evts(Chip8 *chip8)
 {
     int i;
     SDL_Event e;
@@ -90,12 +86,10 @@ main(int argc, char **argv)
     Chip8 chip8;
     chip8_init(&chip8);
     if (!chip8_rom_load(&chip8, argv[1])) return EXIT_FAILURE;
-    for (;;)
+    for (; evts(&chip8); usleep(1500))
     {
         chip8_emulate(&chip8);
-        if (!events_handle(&chip8)) return EXIT_SUCCESS;
         if (chip8.drawflag) render(renderer, texture, &chip8);
-        usleep(1500);
     }
 
     SDL_DestroyTexture(texture);
