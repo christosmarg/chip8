@@ -17,14 +17,11 @@ evts(Chip8 *chip8)
     SDL_Event e;
     while (SDL_PollEvent(&e))
     {
-        if (e.type == SDL_QUIT) return FALSE; 
+        if (e.type == SDL_QUIT || e.key.keysym.sym == SDLK_ESCAPE) return FALSE; 
         if (e.type == SDL_KEYDOWN)
-        {
-            if (e.key.keysym.sym == SDLK_ESCAPE) return FALSE;
             for (i = 0; i < 16; i++)
                 if (e.key.keysym.sym == keymap[i])
                     chip8->keys[i] = TRUE;
-        }
         if (e.type == SDL_KEYUP)
             for (i = 0; i < 16; i++)
                 if (e.key.keysym.sym == keymap[i])
@@ -34,7 +31,7 @@ evts(Chip8 *chip8)
 }
 
 static void
-render(SDL_Renderer *r, SDL_Texture *t, Chip8 *chip8)
+render(SDL_Renderer *ren, SDL_Texture *tex, Chip8 *chip8)
 {
     int i;
     uint32_t pixels[2048];
@@ -44,16 +41,15 @@ render(SDL_Renderer *r, SDL_Texture *t, Chip8 *chip8)
         uint8_t pixel = chip8->gfx[i];
         pixels[i] = (0x00FFFFFF * pixel) | 0xFF000000;
     }
-    SDL_UpdateTexture(t, NULL, pixels, 64 * sizeof(Uint32));
-    SDL_RenderClear(r);
-    SDL_RenderCopy(r, t, NULL, NULL);
-    SDL_RenderPresent(r);
+    SDL_UpdateTexture(tex, NULL, pixels, 64 * sizeof(Uint32));
+    SDL_RenderClear(ren);
+    SDL_RenderCopy(ren, tex, NULL, NULL);
+    SDL_RenderPresent(ren);
 }
 
 int
 main(int argc, char **argv)
 {
-    SDL_Window *win = NULL;
     int w = 1024, h = 512;
     srand(time(NULL));
 
@@ -67,21 +63,18 @@ main(int argc, char **argv)
         fprintf(stderr, "Cannot initialize SDL. Exiting. . .\n");
         return EXIT_FAILURE;
     }
-
-    win = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED,
+    SDL_Window *win = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED,
                             SDL_WINDOWPOS_UNDEFINED, w, h,
                             SDL_WINDOW_SHOWN);
-    if (win == NULL)
+    SDL_Renderer *ren = SDL_CreateRenderer(win, -1, 0);
+    SDL_RenderSetLogicalSize(ren, w, h);
+    SDL_Texture *tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888,
+            SDL_TEXTUREACCESS_STREAMING, 64, 32);
+    if (!win || !ren || !tex)
     {
-        fprintf(stderr, "Cannot create SDL window. Exiting. . .\n%s\n", SDL_GetError());
+        fprintf(stderr, "SDL error. Exiting. . .\n%s\n", SDL_GetError());
         return EXIT_FAILURE;
     }
-
-    SDL_Renderer *renderer = SDL_CreateRenderer(win, -1, 0);
-    SDL_RenderSetLogicalSize(renderer, w, h);
-    SDL_Texture *texture = SDL_CreateTexture(
-            renderer, SDL_PIXELFORMAT_ARGB8888,
-            SDL_TEXTUREACCESS_STREAMING, 64, 32);
 
     Chip8 chip8;
     chip8_init(&chip8);
@@ -89,11 +82,11 @@ main(int argc, char **argv)
     for (; evts(&chip8); usleep(1500))
     {
         chip8_emulate(&chip8);
-        if (chip8.drawflag) render(renderer, texture, &chip8);
+        if (chip8.drawflag) render(ren, tex, &chip8);
     }
 
-    SDL_DestroyTexture(texture);
-    SDL_DestroyRenderer(renderer);
+    SDL_DestroyTexture(tex);
+    SDL_DestroyRenderer(ren);
     SDL_DestroyWindow(win);
     SDL_Quit();
     return EXIT_SUCCESS;

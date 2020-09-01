@@ -34,14 +34,12 @@ chip8_init(Chip8 *chip8)
         0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
         0xF0, 0x80, 0xF0, 0x80, 0x80  // F
     };
-
     pc         = 0x200;
     opcode     = 0;
     I          = 0;
     sp         = 0;
     delaytimer = 0;
     soundtimer = 0;
-
     memset(V,      0, 16   * sizeof(uint8_t));
     memset(keys,   0, 16   * sizeof(uint8_t));
     memset(stack,  0, 16   * sizeof(uint16_t));
@@ -96,28 +94,22 @@ chip8_rom_load(Chip8 *chip8, const char *fpath)
 void
 chip8_emulate(Chip8 *chip8)
 {
-    chip8_fetch(chip8);
+    opcode = memory[pc] << 8 | memory[pc + 1]; // fetch
     if (chip8_decode(chip8))
     {
-        chip8_execute(chip8);
+        pc += 2; // execute
         chip8_timers_update(chip8);
     }
-    printf("opcode: %x\tmemory: %x\tI: %x\tsp: %x\tpc: %d\n",
+    printf("Opcode: %x\tMemory: %x\tI: %x\tSP: %x\tPC: %d\n",
             opcode, memory[pc] << 8 | memory[pc + 1], I, sp, pc);
-}
-
-void
-chip8_fetch(Chip8 *chip8)
-{
-    opcode = memory[pc] << 8 | memory[pc + 1];
 }
 
 int
 chip8_decode(Chip8 *chip8)
 {
-    int i;
     switch (opcode & 0xF000)
     {
+        int i;
         case 0x0000: // 00E_
             switch (opcode & 0x00FF)
             {
@@ -228,7 +220,6 @@ chip8_decode(Chip8 *chip8)
                     }
                 }
             }
-
             drawflag = TRUE;
         }
             break;
@@ -304,12 +295,6 @@ chip8_decode(Chip8 *chip8)
             return FALSE;
     }
     return TRUE;
-}
-
-void
-chip8_execute(Chip8 *chip8)
-{
-    pc += 2;
 }
 
 void
