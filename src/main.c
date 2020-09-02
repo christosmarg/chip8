@@ -11,7 +11,7 @@ static const uint8_t keymap[16] = {
 };
 
 static int
-evts(Chip8 *chip8)
+evts(struct Chip8 *chip8)
 {
     int i;
     SDL_Event e;
@@ -31,7 +31,7 @@ evts(Chip8 *chip8)
 }
 
 static void
-render(SDL_Renderer *ren, SDL_Texture *tex, Chip8 *chip8)
+render(SDL_Renderer *ren, SDL_Texture *tex, struct Chip8 *chip8)
 {
     int i;
     uint32_t pixels[2048];
@@ -76,7 +76,7 @@ main(int argc, char **argv)
         return EXIT_FAILURE;
     }
 
-    Chip8 chip8;
+    struct Chip8 chip8;
     chip8_init(&chip8);
     if (!chip8_rom_load(&chip8, argv[1])) return EXIT_FAILURE;
     for (; evts(&chip8); usleep(1500))

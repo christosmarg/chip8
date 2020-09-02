@@ -8,8 +8,10 @@ BIN_DIR = bin
 SRC = $(wildcard $(SRC_DIR)/*.c)
 OBJ = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
+CP=cp
 MOVE = mv
 MKDIR_P = mkdir -p
+RM_DIR=rm -rf
 
 CC = gcc
 CPPFLAGS += -Iinclude -pedantic
@@ -34,7 +36,7 @@ run:
 	./$(BIN_DIR)/$(TARGET)
 
 install: $(TARGET)
-	cp $(BIN_DIR)/$(TARGET) $(INSTALL_PATH)
+	$(CP) $(BIN_DIR)/$(TARGET) $(INSTALL_PATH)
 	
 clean:
-	$(RM) $(OBJ) $(BIN_DIR)/$(TARGET)
+	$(RM_DIR) $(OBJ_DIR) $(BIN_DIR)
