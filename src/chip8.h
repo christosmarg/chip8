@@ -27,8 +27,8 @@ struct Chip8 {
 
 extern struct Chip8 chip8;
 
-extern void  chip8_init(struct Chip8 *chip8);
-extern int   chip8_rom_load(struct Chip8 *chip8, const char *fpath);
-extern void  chip8_emulate(struct Chip8 *chip8);
+extern void  chip8_init(struct Chip8 *);
+extern int   chip8_rom_load(struct Chip8 *, const char *);
+extern void  chip8_emulate(struct Chip8 *);
 
 #endif /* CHIP8_H */
