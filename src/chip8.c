@@ -13,8 +13,8 @@
 #define soundtimer  chip8->soundtimer
 #define drawflag    chip8->drawflag
 
-static int   chip8_decode(struct Chip8 *chip8);
-static void  chip8_timers_update(struct Chip8 *chip8);
+static int   chip8_decode(struct Chip8 *);
+static void  chip8_timers_update(struct Chip8 *);
 
 void
 chip8_init(struct Chip8 *chip8)
@@ -56,8 +56,7 @@ int
 chip8_rom_load(struct Chip8 *chip8, const char *fpath)
 {
     FILE *rom = fopen(fpath, "rb");
-    if (rom == NULL)
-    {
+    if (rom == NULL) {
         fprintf(stderr, "Error loading ROM (%s). Exiting. . .\n", fpath);
         return FALSE;
     }
@@ -66,15 +65,13 @@ chip8_rom_load(struct Chip8 *chip8, const char *fpath)
     rewind(rom);
 
     char *buf = (char *)malloc(romsize * sizeof(char));
-    if (buf == NULL)
-    {
+    if (buf == NULL) {
         fprintf(stderr, "Cannot allocate memory. Exiting. . .\n");
         return FALSE;
     }
 
     size_t res = fread(buf, sizeof(char), (size_t)romsize, rom);
-    if (res != romsize)
-    {
+    if (res != romsize) {
         fprintf(stderr, "Error reading ROM. Exiting. . .\n");
         return FALSE;
     }
@@ -83,8 +80,7 @@ chip8_rom_load(struct Chip8 *chip8, const char *fpath)
     if ((4096 - 512) > romsize)
         for (i = 0; i < romsize; i++)
             memory[i + 512] = (uint8_t)buf[i];
-    else
-    {
+    else {
         fprintf(stderr, "ROM can't fit into memory. Exiting. . .\n");
         return FALSE;
     }
@@ -98,8 +94,7 @@ void
 chip8_emulate(struct Chip8 *chip8)
 {
     opcode = memory[pc] << 8 | memory[pc + 1]; // fetch
-    if (chip8_decode(chip8))
-    {
+    if (chip8_decode(chip8)) {
         pc += 2; // execute
         chip8_timers_update(chip8);
     }
@@ -110,12 +105,10 @@ chip8_emulate(struct Chip8 *chip8)
 int
 chip8_decode(struct Chip8 *chip8)
 {
-    switch (opcode & 0xF000)
-    {
+    switch (opcode & 0xF000) {
         int i;
         case 0x0000: // 00E_
-            switch (opcode & 0x00FF)
-            {
+            switch (opcode & 0x00FF) {
                 case 0xE0: // 00E0 - Clear screen
                     memset(gfx, 0, 2048 * sizeof(uint8_t));
                     drawflag = TRUE;
@@ -150,8 +143,7 @@ chip8_decode(struct Chip8 *chip8)
             V[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
             break;
         case 0x8000: // 8XY_
-            switch (opcode & 0x000F)
-            {
+            switch (opcode & 0x000F) {
                 case 0x0000: // 8XY0 - Set VX to VY
                     V[(opcode & 0x0F00) >> 8] = V[(opcode & 0x00F0) >> 4];
                     break;
@@ -210,13 +202,10 @@ chip8_decode(struct Chip8 *chip8)
 
             V[0xF] = 0;
             int yl, xl;
-            for (yl = 0; yl < h; yl++)
-            {
+            for (yl = 0; yl < h; yl++) {
                 pixel = memory[I + yl];
-                for (xl = 0; xl < 8; xl++)
-                {
-                    if ((pixel & (0x80 >> xl)) != 0)
-                    {
+                for (xl = 0; xl < 8; xl++) {
+                    if ((pixel & (0x80 >> xl)) != 0) {
                         if (gfx[VX + xl + ((VY + yl) * 64)] == 1)
                             V[0xF] = 1;
                         gfx[VX + xl + ((VY + yl) * 64)] ^= 1;
@@ -227,8 +216,7 @@ chip8_decode(struct Chip8 *chip8)
         }
             break;
         case 0xE000: // EX__
-            switch (opcode & 0x00FF)
-            {
+            switch (opcode & 0x00FF) {
                 case 0x009E: // EX9E - Skip next instruction if key in VX is pressed
                     if (keys[V[(opcode & 0x0F00) >> 8]]) pc += 2;
                     break;
@@ -241,18 +229,15 @@ chip8_decode(struct Chip8 *chip8)
             }
             break;
         case 0xF000: // FX__
-            switch (opcode & 0x00FF)
-            {
+            switch (opcode & 0x00FF) {
                 case 0x0007: // FX07 - Set VX to delaytimer
                     V[(opcode & 0x0F00) >> 8] = delaytimer;
                     break;
                 case 0x000A: // FX0A - Wait for key press and then store it in VX
                 {
                     int keypressed = FALSE;
-                    for (i = 0; i < 16; i++)
-                    {
-                        if (keys[i])
-                        {
+                    for (i = 0; i < 16; i++) {
+                        if (keys[i]) {
                             V[(opcode & 0x0F00) >> 8] = i;
                             keypressed = TRUE;
                         }

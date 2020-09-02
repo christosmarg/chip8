@@ -36,8 +36,7 @@ render(SDL_Renderer *ren, SDL_Texture *tex, struct Chip8 *chip8)
     int i;
     uint32_t pixels[2048];
     chip8->drawflag = FALSE;
-    for (i = 0; i < 2048; i++)
-    {
+    for (i = 0; i < 2048; i++) {
         uint8_t pixel = chip8->gfx[i];
         pixels[i] = (0x00FFFFFF * pixel) | 0xFF000000;
     }
@@ -53,13 +52,11 @@ main(int argc, char **argv)
     int w = 1024, h = 512;
     srand(time(NULL));
 
-    if (argc != 2)
-    {
+    if (argc != 2) {
         fprintf(stderr, "Usage: ./chip8 [ROM]\n");
         return EXIT_FAILURE;
     }
-    if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
-    {
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         fprintf(stderr, "Cannot initialize SDL. Exiting. . .\n");
         return EXIT_FAILURE;
     }
@@ -70,8 +67,7 @@ main(int argc, char **argv)
     SDL_RenderSetLogicalSize(ren, w, h);
     SDL_Texture *tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888,
             SDL_TEXTUREACCESS_STREAMING, 64, 32);
-    if (!win || !ren || !tex)
-    {
+    if (!win || !ren || !tex) {
         fprintf(stderr, "SDL error. Exiting. . .\n%s\n", SDL_GetError());
         return EXIT_FAILURE;
     }
@@ -79,8 +75,7 @@ main(int argc, char **argv)
     struct Chip8 chip8;
     chip8_init(&chip8);
     if (!chip8_rom_load(&chip8, argv[1])) return EXIT_FAILURE;
-    for (; evts(&chip8); usleep(1500))
-    {
+    for (; evts(&chip8); usleep(1500)) {
         chip8_emulate(&chip8);
         if (chip8.drawflag) render(ren, tex, &chip8);
     }
