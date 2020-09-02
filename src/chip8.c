@@ -13,8 +13,11 @@
 #define soundtimer  chip8->soundtimer
 #define drawflag    chip8->drawflag
 
+static int   chip8_decode(struct Chip8 *chip8);
+static void  chip8_timers_update(struct Chip8 *chip8);
+
 void
-chip8_init(Chip8 *chip8)
+chip8_init(struct Chip8 *chip8)
 {
     uint8_t fontset[80] = {
         0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
@@ -50,7 +53,7 @@ chip8_init(Chip8 *chip8)
 }
 
 int
-chip8_rom_load(Chip8 *chip8, const char *fpath)
+chip8_rom_load(struct Chip8 *chip8, const char *fpath)
 {
     FILE *rom = fopen(fpath, "rb");
     if (rom == NULL)
@@ -92,7 +95,7 @@ chip8_rom_load(Chip8 *chip8, const char *fpath)
 }
 
 void
-chip8_emulate(Chip8 *chip8)
+chip8_emulate(struct Chip8 *chip8)
 {
     opcode = memory[pc] << 8 | memory[pc + 1]; // fetch
     if (chip8_decode(chip8))
@@ -105,7 +108,7 @@ chip8_emulate(Chip8 *chip8)
 }
 
 int
-chip8_decode(Chip8 *chip8)
+chip8_decode(struct Chip8 *chip8)
 {
     switch (opcode & 0xF000)
     {
@@ -298,7 +301,7 @@ chip8_decode(Chip8 *chip8)
 }
 
 void
-chip8_timers_update(Chip8 *chip8)
+chip8_timers_update(struct Chip8 *chip8)
 {
     if (delaytimer > 0) --delaytimer;
     if (soundtimer > 0) --soundtimer;
