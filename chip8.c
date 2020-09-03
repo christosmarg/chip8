@@ -1,11 +1,17 @@
 #define _DEFAULT_SOURCE
-#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 #include <SDL2/SDL.h>
+#ifdef _WIN_32
+typedef unsigned char  uint8_t
+typedef unsigned short uint16_t
+typedef unsigned int   uint32_t
+#else
+#include <inttypes.h>
+#endif /* _WIN_32 */
 
 #define TRUE  1
 #define FALSE 0
