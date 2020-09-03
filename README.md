@@ -12,7 +12,6 @@ Your typical CHIP-8 copy. This one uses SDL2 as a rendering API.
 ```shell
 $ cd path/to/chip8
 $ make
-$ cd bin
 $ ./chip8 [../path/to/ROM]
 ```
 In order to install do
