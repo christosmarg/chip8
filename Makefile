@@ -1,8 +1,11 @@
-TARGET = chip8
-INSTALL_PATH = /usr/local/bin
+BIN = chip8
+MAN1 = ${BIN}.1
+PREFIX = /usr/local
+MAN_DIR = ${PREFIX}/man/man1
+BIN_DIR = ${PREFIX}bin
 
-SRC = $(wildcard *.c)
-OBJ = $(SRC:%.c=%.o)
+SRC = ${wildcard *.c}
+OBJ = ${SRC:%.c=%.o}
 
 CC = gcc
 CPPFLAGS += -Iinclude -pedantic
@@ -10,25 +13,28 @@ CFLAGS += -Wall -std=c99 -O3
 LDFLAGS += -Llib
 LDLIBS += -lSDL2
 
-CP=cp
-MOVE = mv
-MKDIR_P = mkdir -p
+CP=cp -f
+MKDIR = mkdir -p
 
 .PHONY: all clean
 
-all: $(TARGET)
+all: ${BIN}
 
-$(TARGET): $(OBJ)
-	$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@
+${BIN}: ${OBJ}
+	${CC} ${LDFLAGS} $^ ${LDLIBS} -o $@
 
 %.o: %.c
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+	${CC} ${CPPFLAGS} ${CFLAGS} -c $< -o $@
 
 run:
-	./$(TARGET)
+	./${BIN}
 
-install: $(TARGET)
-	$(CP) $(TARGET) $(INSTALL_PATH)
+install: all
+	${MKDIR} ${DESTDIR}${BIN_DIR}
+	${CP} ${BIN} ${BIN_DIR}
+	#${MKDIR} ${DESTDIR}${MAN_DIR}
+	#${CP} ${MAN1} ${DESTDIR}${MAN_DIR}
+	#chmod 644 ${DESTDIR}${MAN_DIR}/${MAN1}
 
 clean:
-	$(RM) $(OBJ) $(TARGET)
+	${RM} ${OBJ} ${BIN}

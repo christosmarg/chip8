@@ -6,9 +6,9 @@
 #include <unistd.h>
 #include <SDL2/SDL.h>
 #ifdef _WIN_32
-typedef unsigned char  uint8_t
-typedef unsigned short uint16_t
 typedef unsigned int   uint32_t
+typedef unsigned short uint16_t
+typedef unsigned char  uint8_t
 #else
 #include <inttypes.h>
 #endif /* _WIN_32 */
@@ -17,18 +17,18 @@ typedef unsigned int   uint32_t
 #define FALSE 0
 
 struct Chip8 {
-    uint8_t   memory[4096];
-    uint8_t   V[16];
+    uint16_t  I;
+    uint16_t  opcode;
+    uint16_t  pc;
+    uint16_t  sp;
+    uint16_t  stack[16];
+    uint8_t   delaytimer;
+    uint8_t   drawflag;
     uint8_t   gfx[64 * 32];
     uint8_t   keys[16];
-    uint8_t   delaytimer;
+    uint8_t   memory[4096];
     uint8_t   soundtimer;
-    uint8_t   drawflag;
-    uint16_t  stack[16];
-    uint16_t  sp;
-    uint16_t  opcode;
-    uint16_t  I;
-    uint16_t  pc;
+    uint8_t   V[16];
 };
 
 static const uint8_t keymap[16] = {
@@ -46,18 +46,18 @@ static void  timers_update(struct Chip8 *);
 static int   evts(struct Chip8 *);
 static void  render(SDL_Renderer *, SDL_Texture *, struct Chip8 *);
 
-#define V           chip8->V
-#define pc          chip8->pc
-#define opcode      chip8->opcode
 #define I           chip8->I
+#define opcode      chip8->opcode
+#define pc          chip8->pc
 #define sp          chip8->sp
-#define memory      chip8->memory
-#define gfx         chip8->gfx
 #define stack       chip8->stack
-#define keys        chip8->keys
 #define delaytimer  chip8->delaytimer
-#define soundtimer  chip8->soundtimer
 #define drawflag    chip8->drawflag
+#define gfx         chip8->gfx
+#define keys        chip8->keys
+#define memory      chip8->memory
+#define soundtimer  chip8->soundtimer
+#define V           chip8->V
 
 void
 chip8_init(struct Chip8 *chip8)
@@ -107,14 +107,14 @@ romload(struct Chip8 *chip8, const char *fpath)
     long romsize = ftell(rom);
     rewind(rom);
 
-    char *buf = (char *)malloc(romsize * sizeof(char));
-    if (buf == NULL) {
+    char *buf;
+    if ((buf = (char *)malloc(romsize * sizeof(char))) == NULL) {
         fprintf(stderr, "Cannot allocate memory. Exiting. . .\n");
         return FALSE;
     }
 
-    size_t res = fread(buf, sizeof(char), (size_t)romsize, rom);
-    if (res != romsize) {
+    size_t res;
+    if ((res = fread(buf, sizeof(char), (size_t)romsize, rom)) != romsize) {
         fprintf(stderr, "Error reading ROM. Exiting. . .\n");
         return FALSE;
     }
@@ -124,7 +124,7 @@ romload(struct Chip8 *chip8, const char *fpath)
         for (i = 0; i < romsize; i++)
             memory[i + 512] = (uint8_t)buf[i];
     else {
-        fprintf(stderr, "ROM can't fit into memory. Exiting. . .\n");
+        fputs("ROM can't fit into memory. Exiting. . .\n", stderr);
         return FALSE;
     }
 
@@ -238,10 +238,10 @@ decode(struct Chip8 *chip8)
             break;
         case 0xD000: // Draw an 8 pixel sprite at (VX, VY)
         {
-            uint8_t VX = V[(opcode & 0x0F00) >> 8];
-            uint8_t VY = V[(opcode & 0x00F0) >> 4];
             uint16_t h = opcode & 0x000F;
             uint16_t pixel;
+            uint8_t VX = V[(opcode & 0x0F00) >> 8];
+            uint8_t VY = V[(opcode & 0x00F0) >> 4];
 
             V[0xF] = 0;
             int yl, xl;
@@ -322,7 +322,7 @@ decode(struct Chip8 *chip8)
             }
             break;
         default:
-            fprintf(stderr, "Unimplemented opcode\n");
+            fputs("Unimplemented opcode\n", stderr);
             return FALSE;
     }
     return TRUE;
@@ -391,11 +391,11 @@ main(int argc, char **argv)
     srand(time(NULL));
 
     if (argc != 2) {
-        fprintf(stderr, "Usage: ./chip8 [ROM]\n");
+        fprintf(stderr, "Usage: %s [ROM]\n", argv[0]);
         return EXIT_FAILURE;
     }
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-        fprintf(stderr, "Cannot initialize SDL. Exiting. . .\n");
+        fputs("Cannot initialize SDL. Exiting. . .\n", stderr);
         return EXIT_FAILURE;
     }
     SDL_Window *win = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED,
