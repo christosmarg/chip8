@@ -331,8 +331,10 @@ decode(struct Chip8 *chip8)
 void
 timers_update(struct Chip8 *chip8)
 {
-    if (delaytimer > 0) --delaytimer;
-    if (soundtimer > 0) --soundtimer;
+    if (delaytimer > 0)
+        --delaytimer;
+    if (soundtimer > 0)
+        --soundtimer;
 }
 
 #undef V
@@ -355,7 +357,8 @@ evts(struct Chip8 *chip8)
     SDL_Event e;
     while (SDL_PollEvent(&e))
     {
-        if (e.type == SDL_QUIT || e.key.keysym.sym == SDLK_ESCAPE) return FALSE; 
+        if (e.type == SDL_QUIT || e.key.keysym.sym == SDLK_ESCAPE)
+            return FALSE; 
         if (e.type == SDL_KEYDOWN)
             for (i = 0; i < 16; i++)
                 if (e.key.keysym.sym == keymap[i])
@@ -412,10 +415,12 @@ main(int argc, char **argv)
 
     struct Chip8 chip8;
     chip8_init(&chip8);
-    if (!romload(&chip8, argv[1])) return EXIT_FAILURE;
+    if (!romload(&chip8, argv[1]))
+        return EXIT_FAILURE;
     for (; evts(&chip8); usleep(1500)) {
         emulate(&chip8);
-        if (chip8.drawflag) render(ren, tex, &chip8);
+        if (chip8.drawflag)
+            render(ren, tex, &chip8);
     }
 
     SDL_DestroyTexture(tex);
