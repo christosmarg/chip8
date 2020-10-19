@@ -17,7 +17,6 @@ $ ./chip8 [../path/to/ROM]
 In order to install do
 ```shell
 $ cd path/to/chip8
-$ make
 $ sudo make install
 $ make clean # optional
 ```
