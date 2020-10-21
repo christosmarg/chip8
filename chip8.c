@@ -5,55 +5,58 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #include <SDL2/SDL.h>
 
 #ifdef _WIN_32
-typedef unsigned int   uint32_t
-typedef unsigned short uint16_t
-typedef unsigned char  uint8_t
-#else
-#include <inttypes.h>
+#include <Windows.h>
+typedef unsigned int   u_int32_t
+typedef unsigned short u_int16_t
+typedef unsigned char  u_int8_t
+#else /* !_WIN_32 */
+#include <sys/types.h>
+#include <unistd.h>
 #endif /* _WIN_32 */
 
 #define VX_MASK(x)   ((x & 0x0f00) >> 8)
 #define VY_MASK(x)   ((x & 0x00f0) >> 4)
 #define NN_MASK(x)   (x & 0x00ff)
 #define NNN_MASK(x)  (x & 0x0fff)
-#define EXECUTE(pc)  do { pc += 2; } while (0)
 #define ROM_SIZE_MAX (4096 - 512)
+#define FETCH(c8) \
+        (c8->opcode = c8->memory[c8->pc] << 8 | c8->memory[c8->pc + 1])
+#define EXECUTE(pc)  do { pc += 2; } while (0)
 
 struct Chip8 {
-        uint16_t  I;
-        uint16_t  opcode;
-        uint16_t  pc;
-        uint16_t  sp;
-        uint16_t  stack[16];
-        uint8_t   delaytimer;
-        uint8_t   drawflag;
-        uint8_t   gfx[64 * 32];
-        uint8_t   keys[16];
-        uint8_t   memory[4096];
-        uint8_t   soundtimer;
-        uint8_t   V[16];
+        u_int16_t  I;
+        u_int16_t  opcode;
+        u_int16_t  pc;
+        u_int16_t  sp;
+        u_int16_t  stack[16];
+        u_int8_t   delaytimer;
+        u_int8_t   drawflag;
+        u_int8_t   gfx[64 * 32];
+        u_int8_t   keys[16];
+        u_int8_t   memory[4096];
+        u_int8_t   soundtimer;
+        u_int8_t   V[16];
 };
 
-static const uint8_t keymap[16] = {
+static const u_int8_t keymap[16] = {
         SDLK_1, SDLK_2, SDLK_3, SDLK_4,
         SDLK_q, SDLK_w, SDLK_e, SDLK_r,
         SDLK_a, SDLK_s, SDLK_d, SDLK_f,
         SDLK_z, SDLK_x, SDLK_c, SDLK_v
 };
 
-static void  chip8_init(struct Chip8 *);
-static void  romload(struct Chip8 *, const char *);
-static void  emulate(struct Chip8 *);
-static int   decode(struct Chip8 *);
-static void  timers_update(struct Chip8 *);
-static int   evts(struct Chip8 *);
-static void  render(SDL_Renderer *, SDL_Texture *, struct Chip8 *);
-static void  die(const char *, ...);
+static void     chip8_init(struct Chip8 *);
+static void     romload(struct Chip8 *, const char *);
+static void     emulate(struct Chip8 *);
+static int      decode(struct Chip8 *);
+static void     timers_update(struct Chip8 *);
+static int      evts(struct Chip8 *);
+static void     render(SDL_Renderer *, SDL_Texture *, struct Chip8 *);
+static void     die(const char *, ...);
 
 #define I           chip8->I
 #define opcode      chip8->opcode
@@ -72,7 +75,7 @@ void
 chip8_init(struct Chip8 *chip8)
 {
         int i;
-        uint8_t fontset[80] = {
+        u_int8_t fontset[80] = {
                 0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
                 0x20, 0x60, 0x20, 0x20, 0x70, // 1
                 0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -96,11 +99,11 @@ chip8_init(struct Chip8 *chip8)
         sp         = 0;
         delaytimer = 0;
         soundtimer = 0;
-        memset(V,      0, 16   * sizeof(uint8_t));
-        memset(keys,   0, 16   * sizeof(uint8_t));
-        memset(stack,  0, 16   * sizeof(uint16_t));
-        memset(gfx,    0, 2048 * sizeof(uint8_t));
-        memset(memory, 0, 4096 * sizeof(uint8_t));
+        memset(V,      0, 16   * sizeof(u_int8_t));
+        memset(keys,   0, 16   * sizeof(u_int8_t));
+        memset(stack,  0, 16   * sizeof(u_int16_t));
+        memset(gfx,    0, 2048 * sizeof(u_int8_t));
+        memset(memory, 0, 4096 * sizeof(u_int8_t));
         for (i = 0; i < 80; memory[i] = fontset[i], i++)
                 ;
 }
@@ -109,8 +112,8 @@ void
 romload(struct Chip8 *chip8, const char *fpath)
 {
         FILE *rom;
-        long romsize;
         size_t res;
+        long romsize;
         int i;
         char *buf;
 
@@ -126,7 +129,7 @@ romload(struct Chip8 *chip8, const char *fpath)
                 die("error reading ROM.");
         if (romsize < ROM_SIZE_MAX)
                 for (i = 0; i < romsize; i++)
-                        memory[i + 512] = (uint8_t)buf[i];
+                        memory[i + 512] = (u_int8_t)buf[i];
         else
                 die("ROM cannot fit into memory.");
 
@@ -134,12 +137,13 @@ romload(struct Chip8 *chip8, const char *fpath)
         free(buf);
 }
 
+
 void
 emulate(struct Chip8 *chip8)
 {
-        opcode = memory[pc] << 8 | memory[pc + 1]; // fetch
+        FETCH(opcode);
         if (decode(chip8)) {
-                EXECUTE(pc); // execute
+                EXECUTE(pc);
                 timers_update(chip8);
         }
         printf("Opcode: %x\tMemory: %x\tI: %x\tSP: %x\tPC: %d\n",
@@ -155,7 +159,7 @@ decode(struct Chip8 *chip8)
         case 0x0000: // 00E_
                 switch (NN_MASK(opcode)) {
                 case 0xE0: // 00E0 - Clear screen
-                        memset(gfx, 0, 2048 * sizeof(uint8_t));
+                        memset(gfx, 0, 2048 * sizeof(u_int8_t));
                         drawflag = 1;
                         break;
                 case 0xEE: // 00EE - Return from subroutine
@@ -244,10 +248,10 @@ decode(struct Chip8 *chip8)
                 break;
         case 0xD000: { // Draw an 8 pixel sprite at (VX, VY)
                 int yl, xl;
-                uint16_t h = opcode & 0x000F;
-                uint16_t pixel;
-                uint8_t VX = V[VX_MASK(opcode)];
-                uint8_t VY = V[VY_MASK(opcode)];
+                u_int16_t h = opcode & 0x000F;
+                u_int16_t pixel;
+                u_int8_t VX = V[VX_MASK(opcode)];
+                u_int8_t VY = V[VY_MASK(opcode)];
 
                 V[0xF] = 0;
                 for (yl = 0; yl < h; yl++) {
@@ -361,8 +365,8 @@ timers_update(struct Chip8 *chip8)
 int
 evts(struct Chip8 *chip8)
 {
-        int i;
         SDL_Event e;
+        int i;
 
         while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_QUIT || e.key.keysym.sym == SDLK_ESCAPE)
@@ -383,8 +387,8 @@ void
 render(SDL_Renderer *ren, SDL_Texture *tex, struct Chip8 *chip8)
 {
         int i;
-        uint32_t pixels[2048];
-        uint8_t pixel;
+        u_int32_t pixels[2048];
+        u_int8_t pixel;
 
         chip8->drawflag = 0;
         for (i = 0; i < 2048; i++) {
@@ -416,8 +420,11 @@ die(const char *fmt, ...)
 }
 
 int
-main(int argc, char **argv)
+main(int argc, char *argv[])
 {
+        SDL_Window *win;
+        SDL_Renderer *ren;
+        SDL_Texture *tex;
         struct Chip8 chip8;
         int w = 1024, h = 512;
 
@@ -427,13 +434,13 @@ main(int argc, char **argv)
         if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
                 die("cannot initalize SDL: %s", SDL_GetError());
 
-        SDL_Window *win = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED,
+        win = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED,
                                 SDL_WINDOWPOS_UNDEFINED, w, h,
                                 SDL_WINDOW_SHOWN);
-        SDL_Renderer *ren = SDL_CreateRenderer(win, -1, 0);
+        ren = SDL_CreateRenderer(win, -1, 0);
         SDL_RenderSetLogicalSize(ren, w, h);
-        SDL_Texture *tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888,
-                SDL_TEXTUREACCESS_STREAMING, 64, 32);
+        tex = SDL_CreateTexture(ren, SDL_PIXELFORMAT_ARGB8888,
+                                SDL_TEXTUREACCESS_STREAMING, 64, 32);
 
         if (!win || !ren || !tex)
                 die("SDL error: %s", SDL_GetError());
@@ -445,7 +452,11 @@ main(int argc, char **argv)
                 emulate(&chip8);
                 if (chip8.drawflag)
                         render(ren, tex, &chip8);
+#ifdef _WIN_32
+                Sleep(1);
+#else /* !_WIN_32 */
                 usleep(1500);
+#endif /* _WIN_32 */
         }
 
         SDL_DestroyTexture(tex);

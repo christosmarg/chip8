@@ -13,14 +13,11 @@ Your typical CHIP-8 copy. This one uses SDL2 as a rendering API.
 $ cd path/to/chip8
 $ make
 $ ./chip8 [../path/to/ROM]
-```
-In order to install do
-```shell
-$ cd path/to/chip8
-$ sudo make install
 $ make clean # optional
 ```
-The binary will be installed at `/usr/local/bin/`
+
+You can install `chip8` by running `sudo make install clean`.
+The binary will be installed at `/usr/local/bin`
 
 ## Screenshots
 
