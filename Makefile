@@ -1,33 +1,15 @@
 # See LICENSE file for copyright and license details.
-# chip8 - a minimal chip8 emulator
+# chip8 - a minimal CHIP-8 emulator
 .POSIX:
 
-BIN = chip8
-VERSION = 0.1
-DIST = ${BIN}-${VERSION}
-MAN1 = ${BIN}.1
-PREFIX = /usr/local
-MAN_DIR = ${PREFIX}/man/man1
-BIN_DIR = ${PREFIX}/bin
+include config.mk
 
-#EXT = c
-#SRC = ${wildcard *.${EXT}}
-#OBJ = ${SRC:%.${EXT}=%.o}
+BIN = chip8
+DIST = ${BIN}-${VERSION}
+#MAN1 = ${BIN}.1
+
 SRC = chip8.c
 OBJ = chip8.o
-
-CC = gcc
-INCS = -Iinclude
-CPPFLAGS = -DVERSION=\"${VERSION}\"
-CFLAGS = -Wall -std=c99 -pedantic -O3 ${INCS} ${CPPFLAGS}
-LDFLAGS = -Llib -lSDL2
-
-CP = cp -f
-RM = rm -f
-RM_DIR = rm -rf
-MKDIR = mkdir -p
-TAR = tar -cf
-GZIP = gzip
 
 all: options ${BIN}
 
@@ -45,7 +27,7 @@ ${OBJ}: ${SRC}
 
 dist: clean
 	${MKDIR} ${DIST}
-	${CP} -R roms ${SRC} LICENSE Makefile README.md ${DIST}
+	${CP} -R roms ${SRC} config.mk LICENSE Makefile README.md ${DIST}
 	${TAR} ${DIST}.tar ${DIST}
 	${GZIP} ${DIST}.tar
 	${RM_DIR} ${DIST}
