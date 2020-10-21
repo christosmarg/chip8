@@ -23,8 +23,6 @@ typedef unsigned char  u_int8_t
 #define NN_MASK(x)   (x & 0x00ff)
 #define NNN_MASK(x)  (x & 0x0fff)
 #define ROM_SIZE_MAX (4096 - 512)
-#define FETCH(c8) \
-        (c8->opcode = c8->memory[c8->pc] << 8 | c8->memory[c8->pc + 1])
 #define EXECUTE(pc)  do { pc += 2; } while (0)
 
 struct Chip8 {
@@ -141,7 +139,7 @@ romload(struct Chip8 *chip8, const char *fpath)
 void
 emulate(struct Chip8 *chip8)
 {
-        FETCH(opcode);
+        opcode = memory[pc] << 8 | memory[pc + 1];
         if (decode(chip8)) {
                 EXECUTE(pc);
                 timers_update(chip8);
