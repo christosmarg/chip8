@@ -1,5 +1,4 @@
 /* See LICENSE file for copyright and license details. */
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,7 +47,7 @@ static const u_int8_t keymap[16] = {
 };
 
 static void     chip8_init(struct Chip8 *);
-static void     romload(struct Chip8 *, const char *);
+static void     rom_load(struct Chip8 *, const char *);
 static void     emulate(struct Chip8 *);
 static int      decode(struct Chip8 *);
 static void     timers_update(struct Chip8 *);
@@ -107,7 +106,7 @@ chip8_init(struct Chip8 *chip8)
 }
 
 void
-romload(struct Chip8 *chip8, const char *fpath)
+rom_load(struct Chip8 *chip8, const char *fpath)
 {
         FILE *rom;
         size_t res;
@@ -444,7 +443,7 @@ main(int argc, char *argv[])
                 die("SDL error: %s", SDL_GetError());
 
         chip8_init(&chip8);
-        romload(&chip8, argv[1]);
+        rom_load(&chip8, argv[1]);
 
         while (evts(&chip8)) {
                 emulate(&chip8);
