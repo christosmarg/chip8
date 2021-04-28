@@ -4,7 +4,7 @@ VERSION = 0
 
 # paths
 PREFIX = /usr/local
-MAN_DIR = ${PREFIX}/man/man1
+MAN_DIR = ${PREFIX}/share/man/man1
 BIN_DIR = ${PREFIX}/bin
 
 # includes and libs
@@ -13,9 +13,8 @@ LIBS = -Llib -lSDL2
 
 # flags
 CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_POSIX_C_SOURCE=200809L \
-	   -DVERSION=\"${VERSION}\"
-CFLAGS = -std=c99 -pedantic -Wall -Wno-deprecated-declarations \
-	 -O3 ${INCS} ${CPPFLAGS}
+	   -D_XOPEN_SOURCE=700 -DVERSION=\"${VERSION}\"
+CFLAGS = -std=c99 -pedantic -Wall -Os ${INCS} ${CPPFLAGS}
 LDFLAGS = ${LIBS}
 
 # utils
