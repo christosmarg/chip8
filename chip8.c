@@ -1,21 +1,15 @@
 /* See LICENSE file for copyright and license details. */
+#include <sys/types.h>
+
+#include <err.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include <SDL2/SDL.h>
-
-#ifdef _WIN_32
-#include <Windows.h>
-typedef unsigned int u_int32_t
-typedef unsigned short u_int16_t
-typedef unsigned char u_int8_t
-#else /* !_WIN_32 */
-#include <sys/types.h>
-#include <unistd.h>
-#endif /* _WIN_32 */
 
 #define VX_MASK(x) ((x & 0x0f00) >> 8)
 #define VY_MASK(x) ((x & 0x00f0) >> 4)
@@ -24,31 +18,29 @@ typedef unsigned char u_int8_t
 #define EXECUTE(pc) do { pc += 2; } while (0)
 
 struct chip8 {
-	u_int16_t stack[16];
-	u_int16_t I;
-	u_int16_t opcode;
-	u_int16_t pc;
-	u_int16_t sp;
-	u_int8_t mem[4096];
-	u_int8_t gfx[64 * 32];
-	u_int8_t V[16];
-	u_int8_t keys[16];
-	u_int8_t delaytimer;
-	u_int8_t soundtimer;
-	u_int8_t drawflag;
+	uint16_t stack[16];
+	uint16_t I;
+	uint16_t opcode;
+	uint16_t pc;
+	uint16_t sp;
+	uint8_t mem[4096];
+	uint8_t gfx[64 * 32];
+	uint8_t V[16];
+	uint8_t keys[16];
+	uint8_t delaytimer;
+	uint8_t soundtimer;
+	uint8_t drawflag;
 };
 
 static void chip8_init(struct chip8 *);
-static void romload(struct chip8 *, const char *);
+static void rom_load(struct chip8 *, const char *);
 static void emulate(struct chip8 *);
 static int decode(struct chip8 *);
-static int evhandle(struct chip8 *);
+static int handle_events(struct chip8 *);
 static void render(SDL_Renderer *, SDL_Texture *, struct chip8 *);
-static void warn(const char *, ...);
-static void die(const char *, ...);
 
 static char *argv0;
-static const u_int8_t keymap[16] = {
+static const uint8_t keymap[16] = {
 	SDLK_1, SDLK_2, SDLK_3, SDLK_4,
 	SDLK_q, SDLK_w, SDLK_e, SDLK_r,
 	SDLK_a, SDLK_s, SDLK_d, SDLK_f,
@@ -71,7 +63,7 @@ static const u_int8_t keymap[16] = {
 static void
 chip8_init(struct chip8 *chip8)
 {
-	u_int8_t fontset[80] = {
+	uint8_t fontset[80] = {
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 		0x20, 0x60, 0x20, 0x20, 0x70, // 1
 		0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
@@ -109,30 +101,28 @@ chip8_init(struct chip8 *chip8)
 }
 
 static void
-romload(struct chip8 *chip8, const char *fpath)
+rom_load(struct chip8 *chip8, const char *fpath)
 {
 	FILE *rom;
 	char *buf;
-	size_t res, romsize;
+	size_t res, romsiz;
 	int i;
 
 	if ((rom = fopen(fpath, "rb")) == NULL)
-		die("fopen: %s", fpath);
+		err(1, "fopen: %s", fpath);
 	fseek(rom, 0, SEEK_END);
-	romsize = ftell(rom);
+	romsiz = ftell(rom);
 	rewind(rom);
-
-	if ((buf = malloc(romsize + 1)) == NULL)
-		die("malloc:");
-	if ((res = fread(buf, sizeof(char), romsize, rom)) != romsize)
-		die("fread:");
-	buf[romsize] = '\0';
-	if (romsize < (4092 - 512))
-		for (i = 0; i < romsize; i++)
+	if ((buf = malloc(romsiz + 1)) == NULL)
+		err(1, "malloc");
+	if ((res = fread(buf, sizeof(char), romsiz, rom)) != romsiz)
+		err(1, "fread");
+	buf[romsiz] = '\0';
+	if (romsiz < (4092 - 512))
+		for (i = 0; i < romsiz; i++)
 			mem[i + 512] = buf[i];
 	else
-		die("ROM cannot fit into memory");
-
+		errx(1, "ROM cannot fit into memory");
 	fclose(rom);
 	free(buf);
 }
@@ -156,8 +146,8 @@ static int
 decode(struct chip8 *chip8)
 {
 	int yl, xl, i, keypress = 0;
-	u_int16_t h, pixel;
-	u_int8_t VX, VY;
+	uint16_t h, pixel;
+	uint8_t VX, VY;
 
 	switch (opcode & 0xF000) {
 	case 0x0000: // 00E_
@@ -170,7 +160,7 @@ decode(struct chip8 *chip8)
 			pc = stack[--sp];
 			break;
 		default:
-			warn("unknown opcode: %x\n", opcode);
+			warnx("unknown opcode: %x\n", opcode);
 			return 0;
 		}
 		break;
@@ -233,7 +223,7 @@ decode(struct chip8 *chip8)
 			V[VX_MASK(opcode)] <<= 1;
 			break;
 		default:
-			warn("unknown opcode: %x\n", opcode);
+			warnx("unknown opcode: %x\n", opcode);
 			return 0;
 		}
 		break;
@@ -279,7 +269,7 @@ decode(struct chip8 *chip8)
 				EXECUTE(pc);
 			break;
 		default:
-			warn("unknown opcode: %x\n", opcode);
+			warnx("unknown opcode: %x\n", opcode);
 			return 0;
 		}
 		break;
@@ -327,12 +317,12 @@ decode(struct chip8 *chip8)
 			I += (VX_MASK(opcode)) + 1;
 			break;
 		default:
-			warn("unknown opcode: %x\n", opcode);
+			warnx("unknown opcode: %x\n", opcode);
 			return 0;
 		}
 		break;
 	default:
-		warn("unimplemented opcode\n");
+		warnx("unimplemented opcode\n");
 		return 0;
 	}
 	return 1;
@@ -352,7 +342,7 @@ decode(struct chip8 *chip8)
 #undef drawflag
 
 static int
-evhandle(struct chip8 *chip8)
+handle_events(struct chip8 *chip8)
 {
 	SDL_Event e;
 	int i;
@@ -377,7 +367,7 @@ evhandle(struct chip8 *chip8)
 static void
 render(SDL_Renderer *ren, SDL_Texture *tex, struct chip8 *chip8)
 {
-	u_int32_t pixels[2048];
+	uint32_t pixels[2048];
 	int i;
 
 	chip8->drawflag = 0;
@@ -387,38 +377,6 @@ render(SDL_Renderer *ren, SDL_Texture *tex, struct chip8 *chip8)
 	SDL_RenderClear(ren);
 	SDL_RenderCopy(ren, tex, NULL, NULL);
 	SDL_RenderPresent(ren);
-}
-
-static void
-warn(const char *fmt, ...)
-{
-	va_list args;
-
-	fprintf(stderr, "%s: ", argv0);
-	
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
-}
-
-static void
-die(const char *fmt, ...)
-{
-	va_list args;
-
-	fprintf(stderr, "%s: ", argv0);
-	
-	va_start(args, fmt);
-	vfprintf(stderr, fmt, args);
-	va_end(args);
-
-	if (fmt[0] && fmt[strlen(fmt)-1] == ':') {
-		fputc(' ', stderr);
-		perror(NULL);
-	} else
-		fputc('\n', stderr);
-
-	exit(EXIT_FAILURE);
 }
 
 int
@@ -433,11 +391,16 @@ main(int argc, char *argv[])
 	argv0 = *argv;
 	srand(time(NULL));
 	if (argc != 2) {
-		fprintf(stderr, "usage: %s rom", argv0);
+		fprintf(stderr, "usage: %s rom\n", argv0);
 		return 1;
 	}
+	if ((chip8 = malloc(sizeof(struct chip8))) == NULL)
+		err(1, "malloc");
+	chip8_init(chip8);
+	rom_load(chip8, argv[1]);
+
 	if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
-		die("SDL_Init: %s", SDL_GetError());
+		errx(1, "SDL_Init: %s", SDL_GetError());
 
 	win = SDL_CreateWindow("CHIP-8 Emulator", SDL_WINDOWPOS_UNDEFINED,
 	    SDL_WINDOWPOS_UNDEFINED, w, h,
@@ -448,24 +411,15 @@ main(int argc, char *argv[])
 	    SDL_TEXTUREACCESS_STREAMING, 64, 32);
 
 	if (!win || !ren || !tex)
-		die("SDL error: %s", SDL_GetError());
-	if ((chip8 = malloc(sizeof(struct chip8))) == NULL)
-		die("malloc:");
-
-	chip8_init(chip8);
-	romload(chip8, argv[1]);
-
+		errx(1, "SDL error: %s", SDL_GetError());
 	for (;;) {
-		if (!evhandle(chip8))
+		if (!handle_events(chip8))
 			break;
 		emulate(chip8);
 		if (chip8->drawflag)
 			render(ren, tex, chip8);
-#ifdef _WIN_32
-		Sleep(1);
-#else /* !_WIN_32 */
+		/* FIXME: VERY slow on some machines */
 		usleep(1500);
-#endif /* _WIN_32 */
 	}
 
 	free(chip8);
@@ -474,5 +428,5 @@ main(int argc, char *argv[])
 	SDL_DestroyWindow(win);
 	SDL_Quit();
 
-	return EXIT_SUCCESS;
+	return 0;
 }
