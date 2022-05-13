@@ -4,7 +4,7 @@ CHIP-8 emulator using SDL2.
 
 ## Usage
 
-```shell
+```
 $ make
 # make install clean
 ```
